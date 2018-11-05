@@ -1,4 +1,4 @@
-#The Birthday Problem - Homework 1 - Sam Kettlewell - 201098385
+#The Birthday Problem - Homework 1 - Sam Kettlewell
 
 #Note we must use a loop because R does not like big numbers combined with factorial.
 p <- function(n) {
