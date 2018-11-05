@@ -1,0 +1,38 @@
+---
+title: "MATH2715 - Homework 2 - Normal Distrubtion"
+output: html_notebook
+---
+Let $X \sim N(\mu, \sigma^2).$ We define a function 'norm' that returns $\Pr(a < X \leq b) \text{ for all } a \leq b.$ It makes use of the inbuilt R function 'pnorm', which takes parameter $\alpha$ returns the value of the integral $\int_{-\infty}^{\alpha}\frac{1}{\sigma\sqrt{2\pi}} \exp\Big(-\frac{(x-\mu)^2}{2\sigma^2}\Big).$ We specifically evaluate 'norm' for $a=-2$ and $b=3$ where $X \sim N(1, 2^2).$
+```{r}
+norm <- function(a, b, mu, sigma) {
+  #pnorm(x) returns the integral of the pdf from -inf to x.
+  p <- pnorm(b, mean=mu, sd=sigma) - pnorm(a, mean=mu, sd=sigma)
+  return(p)
+}
+
+norm(-2, 3, 1, 2)
+```
+Nextly, we plot the pdf and cdf of $X \sim N(1, 2^2).$ We do this by generating a sequence of values with a suitable start and endpoint. The sequence should also increment in steps of 0.1, this is adequately small to ensure the curve is smooth.
+
+For the sequence, 'x', we then calculate a vector 'freq' which contains the value of the pdf of the normal distribution for each element in the sequence 'x'. Plot 'freq' against 'x' to see the distribution.
+
+For the sequence, 'x', calculate a new vector 'cfreq' which contains the value of the cdf of the normal distribution for each element in the sequence 'x'. Plot 'cfreq' against 'x' to see the cumulative distribution.
+```{r}
+x <- seq(-6, 8, by = 0.1) #increment in steps of 0.1 for a smooth curve.
+freq <- dnorm(x, mean=1, sd=2)
+plot(x, freq, type = "l" , ylab="Density", lwd=2, main="pdf of N(1, 2^2)")
+
+cfreq <- pnorm(x, mean=1, sd=2)
+plot(x, cfreq, type = "l" , ylab="Probability Density", lwd=2, main="cdf of N(1, 2^2)")
+```
+A Q-Q plot is a plot of the theoretical quantiles against empirical (expermiental) quantiles of a given distribution. We wish to show the Q-Q plot of $N(1, 2^2)$. We use R's inbuilt function 'qnorm' to calculate the theoretical quantiles of the distribution for 0.00, 0.05, 0.10, ..., 1.00. We use the inbuilt function 'rnorm' to generate a random sample of size 100 from $N(1, 2^2)$. Plot these against each other to see the Q-Q plot. In general, if a model is a good fit, each emprirical quantile will match its respective theoretical quantile and the datapoints will lie close to the line y=x. I have added this line for comparison.
+```{r}
+quantilesample <- seq(0,1,0.01) #sample every quantile.
+theoreticquantiles <- qnorm(quantilesample, mean=1, sd=2)
+empiricalquantiles <- quantile(rnorm(100, mean=1, sd=2), probs = quantilesample)
+empiricalquantiles <- as.numeric(empiricalquantiles)
+
+plot(theoreticquantiles, empiricalquantiles, main="Q-Q Plot of N(1,2^2)")
+abline(0,1) #add the line y=x
+```
+
