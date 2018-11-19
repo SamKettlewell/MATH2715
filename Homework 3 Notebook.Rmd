@@ -1,0 +1,60 @@
+---
+title: "Chebyshev's Inequality & The CLT - Homework 3"
+output: html_notebook
+---
+Suppose $X \sim \text{exponential}(\lambda)$ with mean $\mu$ and variance $\sigma^2$. This means $\mu = E[X]=\frac{1}{\lambda}$ and $\sigma^2 = \text{Var}[X] = \frac{1}{\lambda^2}.$ We firstly obtain $\Pr(|X-\mu| \geq k\sigma)$.
+
+Firstly notice that $\Pr(|X-\mu| \geq k\sigma) = \Pr(X-\mu \geq k\sigma)+\Pr(X-\mu \leq -k\sigma)$. By substituting the mean and standard deviation in terms of the parameter $\lambda$ we obtain $\Pr(|X-\mu| \geq k\sigma) = \Pr(X-\frac{1}{\lambda} \geq \frac{k}{\lambda})+\Pr(X-\frac{1}{\lambda} \leq -\frac{k}{\lambda}) = \Pr(X \geq \frac{k+1}{\lambda})+\Pr(X \leq \frac{1-k}{\lambda}) = (1 - \Pr(X \leq \frac{k+1}{\lambda}))+\Pr(X \leq \frac{1-k}{\lambda})$.
+
+Recognising $F_X(x) = \Pr(X \leq x)$, and for the exponential distribtuion we have $F_X(x) = 1 - \exp(-\lambda x)$. Using this we have $(1 - \Pr(X \leq \frac{k+1}{\lambda}))+\Pr(X \leq \frac{1-k}{\lambda}) = (1-F_X(\frac{k+1}{\lambda})) + F_X(\frac{1-k}{\lambda}).$
+
+By applying the definition of the CDF for the exponential distribution we finally obtain $(1-F_X(\frac{k+1}{\lambda})) + F_X(\frac{1-k}{\lambda}) = 1 + \exp(-(k+1)) - \exp(k-1).$
+
+```{r}
+k=seq(1.0, 5.0, 0.5) #Vector containing k values
+prob = exp(-(k+1)) #Probability vector for k values - Choose appropriate terms for k>1
+chebyshev=1/k^2 #Chebyshev probability vector
+
+DF=data.frame(K=k,ExactProb=prob, ChebyBound=chebyshev)
+DF
+```
+We then plot the exact probability values against the Chebyshev bound values to see the probability is smaller than the Chbyshev bound at each point.
+```{r}
+plot(k, prob, type="l", ylim=c(0,1), lwd = 2, ylab = "Probability")
+points(k,chebyshev,type="l",lty=2,col='red', lwd = 2)
+legend(4, 0.95, legend=c("Exact Probability", "Chebyshev Bound"), col=c("black", "red"), lty=1:2, cex=0.8)
+```
+Nextly, we aim to show that the sample mean of a poisson distribution with rate parameter $\lambda = 2$ approaches a Normal Distribution for a large sample size n. To do this we require a function which plots the pdf of the distribution $\text{Pois}(2)$ as the sample size, n, varies. We then overlay this with the pdf of a normal distribution with parameters corresponding to the poisson distribution ($\mu = \lambda$ and $\sigma^2=\lambda$) and show that as $n \rightarrow \infty$, the poisson random variable congerges in distribution to a $N(\mu, \sigma^2)$ distribtuion.
+
+For this we make use of the function provided in Notebook 4. Simply adjusting the parameters such that "mean=$\lambda$" and "sd=sqrt($\lambda$)/sqrt(rvs)" provides the necessary plots.
+```{r}
+outputplotCLT <- function(rvs){
+  #define number of sample means
+  samp = 1000
+  #in the following we sample according to the selected distribution
+  #the number of rows is the number of sample means,
+  #the number of columns is the sample size
+  #calculate the mean and sd of the approximate normal in both cases
+  matrix = matrix(rpois(rvs*samp, 2), nrow = samp, ncol = rvs)
+  mu = 2 #Appropriate parameters for pois(2)
+  sd = sqrt(2)/sqrt(rvs)
+  
+  
+  #calculate the means from each sample
+  means = rowMeans(matrix)
+  #find the fit for the normal (estimate parameters)
+  xfit = seq(from = min(means), to = max(means), by = .001)
+  yfit = dnorm(xfit, mean = mu, sd = sd)
+  #plot means, overlay Normal distribution
+  plot(density(means), main = "", xlab = "", ylab = "Density", col = rgb(0, 1, 0, 3/4), lwd = 8, ylim = c(0, max(density(means)$y, yfit)))
+  lines(xfit, yfit, col = rgb(0, 0, 1, 3/4), lwd = 8)
+  title(main = paste(c("n=",rvs," Case=Poisson(2)"),collapse=''))
+  legend("topright", legend = c("Sample Mean Density", "Estimated Normal Density"), lty=c(1,1), lwd=c(2,2), col=c(rgb(0, 1, 0, 3/4), rgb(0, 0, 1, 3/4)))
+}
+
+for(samplesize in seq(1,10)) {
+  outputplotCLT(samplesize)
+}
+```
+We see, graphically, that as the sample size $n$ increases, the Poisson(2) distribution converges in distribution to $N(2, 2).$ NB: The green curve is only an approximation to the distribution. Since the Poisson distribution is discrete, it is only defined at integer values of x (this is more clearly visible in the smaller sample size chats). The continuous curve, however, still illustrates the desired result well.
+
