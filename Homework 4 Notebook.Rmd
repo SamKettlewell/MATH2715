@@ -1,0 +1,52 @@
+---
+title: "MLE of The Exponential Distribution - Homework 4"
+output: html_notebook
+---
+We wish to estimate the parameter $\lambda$ of an exponential distribution using the method of maximum likelihood estimation. This method involves finding parameter values which maximise the likelihood that the process described by the model produced the observed data.
+
+Firstly we need to derive the log-likelihood function for the exponential distribution. Suppose $X \sim \text{exponential}(\lambda)$ then the joint pdf of the random variables $X_1, X_2, \cdots, X_n$ is given by $$\begin{align*} f_\textbf{x}(\textbf{x}) &= \Pi_{i=1}^nf(x_i) \\ &= \Pi_{i=1}^n \lambda e^{-\lambda x} \\ &= \lambda^n \Pi_{i=1}^n e^{-\lambda x} \\ &= \lambda^n e^{-\lambda \Sigma_{i=1}^n x_i} \\ &= \lambda^n e^{-\lambda n \bar{x}}. \end{align*}$$
+
+We then find the log-likelihood function as the logarithm of the above function, that is,
+
+$$\begin{align*} l(\lambda, \textbf{x}) &= \log f_\textbf{x}(\textbf{x}) \\ &= \log(\lambda^n e^{-\lambda n \bar{x}}) \\ &= \log(\lambda^n)+\log(e^{-\lambda n \bar{x}}) \\ &= n\log(\lambda) - \lambda n \bar{x}. \end{align*}$$
+
+We then add this function into R
+```{r}
+exp_log_lik <- function(y, lambda) {
+  n <- length(y)
+  logl <- n*log(lambda) - lambda*n*mean(y)
+  return(-logl)
+}
+```
+
+Next we produce a function to generate a random sample of 10000 data points from an $\text{exponential}(\lambda)$ distribution. We will use the 'optim' function to generate the MLE estimate of $\lambda.$ We finally compare the values of the expectation for the exponential distribution to the MLE estimate for a range of $\lambda.$ These data are tabulated below. (Note a NaN error is thrown here, and I am unable to pinpoint its source, however it has no visible effect on the outcome of the code.)
+
+```{r}
+mle_exp <-function(lambda) {
+  exp_data <- rexp(10000, lambda) #Generate sample from expon: n=10000, lambda=lambda
+  
+  direct_lambda_est <- 1/mean(exp_data) #Generate a lambda est directly
+  res_exp <- optim(par=lambda, exp_log_lik, y=exp_data, method="BFGS")
+
+  estimate_list <- list(direct_lambda_est, res_exp$par) #Must use list to access
+  return(estimate_list) #Return MLE and direct estimates
+}
+
+#Define vectors containing estimates and lambda values
+lambdas <- seq(1,10)
+direct_estimates <- c()
+mle_estimates <- c()
+
+#Loop through each lambda value and calculate estimates
+for (lambda in lambdas) {
+  exp_sample <- mle_exp(lambda) #Calculate here for same sample for both estimates
+
+  direct_estimates <- c(direct_estimates, exp_sample[1])
+  mle_estimates <- c(mle_estimates, exp_sample[2])
+}
+
+#Tabulate and display the data
+estimate_frame = data.frame(Lambda = lambdas, Direct = unlist(direct_estimates), MLE = unlist(mle_estimates))
+estimate_frame
+```
+We see from this the MLE estimate is an excellent approximation to the parameter. It becomes better with increasing sample size $n$.
