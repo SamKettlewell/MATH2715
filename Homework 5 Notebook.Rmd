@@ -1,0 +1,51 @@
+---
+title: "Hypothesis Testing - Homework 5"
+output: html_notebook
+---
+Consider the in-built R dataset "sleep". This dataset compares the effects of two sleep medications. That is, the increase in number of hours of sleep in patients in comparison to a control.
+```{r}
+sleep
+```
+```{r}
+extra <- sleep[,1]
+group <- c(1,1,1,1,1,1,1,1,1,1,2,2,2,2,2,2,2,2,2,2)
+boxplot(extra ~ group)
+```
+We immediately see the group one drug produces, on average, less of an increase in hours of sleep for each patient. This gives us a feel for whether we expect there to be a statistical difference. In order to test whether there is a difference between the two drugs effects we wish to test $H_0: \mu_1 - \mu_2 = 0$ against $H_1: \mu_1 - \mu_2 \ne 0$ where $\mu_1$ and $\mu_2$ are the mean extra hours slept for group one and group two respectively.
+
+We first check whether the data are normally distributed. We check this by performing a qqplot of the patients in each group and checking the data is roughly normally distributed.
+```{r}
+extra1 <- extra[1:10]
+extra2 <- extra[11:20]
+
+qqnorm(extra1)
+qqline(extra1)
+qqnorm(extra2)
+qqline(extra2)
+```
+
+Hence we see they are suitably normally distributed and so we wish to introduce a model using pairs of random variables $(X_i, Y_i)$. Let $D_i = X_i-Y_i$ for all $i$ then $D \sim N(\mu, \sigma^2)$ with unknown parameters $\mu$ and $\sigma^2$. We therefore use the t-test, test statistic. That is,
+
+$$\frac{\sqrt{n} ( \bar{D}-\mu_0)}{S_D} \sim t(n-1)$$
+
+under the null hypothesis $H_0: \mu = \mu_0$ where $S_D^2$ is the sample variance of the differences.
+```{r}
+n <- 10 #there are ten patients
+difference <- extra1 - extra2
+SD <- sqrt(var(difference))
+
+tstat <- (sqrt(n)*(mean(difference) - 0))/SD
+tstat
+```
+We know this is then distributed according to a $t(9)$ distribution so we calculate the critical value at the $\alpha = 0.05$ level.
+```{r}
+critval <- qt(0.95, 9)
+critval
+```
+Since we see the t-statistic exceeds the critical value, at the 0.95 confidence level wecan reject the nnull hypothesis and conclude there is a statistical difference in number of hours slept between patients on the two medications.
+
+We compare our calcualtions to R's built-in t.test function
+```{r}
+t.test(difference, alternative="two.sided")
+```
+
